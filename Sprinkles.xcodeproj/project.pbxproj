@@ -398,7 +398,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1200;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1630;
 				ORGANIZATIONNAME = Brainbow;
 				TargetAttributes = {
 					425A177221EFC86500C57D44 = {
@@ -526,7 +526,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n/opt/homebrew/bin/swift-format . --recursive --in-place\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n/usr/bin/swift format -r -i .\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -634,6 +634,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -700,6 +701,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -723,7 +725,6 @@
 		425A17B821EFC86700C57D44 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sprinkles/Sprinkles.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -731,7 +732,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Sprinkles/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -749,14 +749,12 @@
 		425A17B921EFC86700C57D44 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sprinkles/Sprinkles.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = Sprinkles/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -774,12 +772,10 @@
 		425A17BB21EFC86700C57D44 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				INFOPLIST_FILE = SprinklesTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -797,12 +793,10 @@
 		425A17BC21EFC86700C57D44 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				INFOPLIST_FILE = SprinklesTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -820,11 +814,9 @@
 		425A17BE21EFC86700C57D44 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				INFOPLIST_FILE = SprinklesUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -842,11 +834,9 @@
 		425A17BF21EFC86700C57D44 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				INFOPLIST_FILE = SprinklesUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -868,7 +858,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Sprinkles Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -891,7 +880,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = DDB8SQMXS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Sprinkles Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
