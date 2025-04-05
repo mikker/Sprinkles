@@ -48,10 +48,14 @@ class Server {
 
     let server = Telegraph.Server(identity: identity, caCertificates: [caCert])
 
-    server.route(.GET, "/domains.json", handleListReq)
+    // v3 manifest
+    server.route(.GET, "/v3/domains.json", handleListReq)
+    server.route(.GET, "/v3/checksum.json", handleChecksumReq)
+    server.route(.GET, "/v3/s/*", handleScriptsReq)
+    // v2 manifest/legacy
+    server.route(.GET, "/s/*", handleScriptsLegacyReq)
+    // meta
     server.route(.GET, "/version.json", handleVersionReq)
-    server.route(.GET, "/checksum.json", handleChecksumReq)
-    server.route(.GET, "/s/*", handleScriptsReq)
     server.serveBundle(.main, "/")
 
     do {
@@ -111,6 +115,24 @@ class Server {
 
     return HTTPResponse(HTTPStatus.ok, headers: headers, content: javascript)
   }
+
+  private func handleScriptsLegacyReq(request: HTTPRequest) -> HTTPResponse {
+    guard let domain = "/s\\/(.*)\\.js".r?.findFirst(in: request.uri.path)?.group(at: 1)
+    else {
+      return HTTPResponse(.unprocessableEntity, content: "console.log('Failed parsing domain')")
+    }
+
+    guard let directory = store.state.directory else {
+      return HTTPResponse(.internalServerError, content: "console.log('No scripts directory set')")
+    }
+
+    let global = compileSet("global", directoryURL: directory)
+    let javascript = compileSet(domain, directoryURL: directory)
+    let combined = global.appending(javascript)
+
+    return HTTPResponse(HTTPStatus.ok, headers: headers, content: combined)
+  }
+
 
   private func handleVersionReq(request: HTTPRequest) -> HTTPResponse {
     let bundle = Bundle.main

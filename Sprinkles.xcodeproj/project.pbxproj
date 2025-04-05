@@ -24,7 +24,10 @@
 		42690B612216CCC400DF8AB3 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 42690B602216CCC400DF8AB3 /* index.html */; };
 		42690B642216D0A300DF8AB3 /* favicon.png in Resources */ = {isa = PBXBuildFile; fileRef = 42690B622216D0A300DF8AB3 /* favicon.png */; };
 		42690B652216D0A300DF8AB3 /* favicon.ico in Resources */ = {isa = PBXBuildFile; fileRef = 42690B632216D0A300DF8AB3 /* favicon.ico */; };
-		42708F362DA013EB006C80AA /* sw.js in Resources */ = {isa = PBXBuildFile; fileRef = 42708F352DA013EB006C80AA /* sw.js */; };
+		42708F3B2DA04CD6006C80AA /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 42708F392DA04CD6006C80AA /* popup.html */; };
+		42708F3C2DA04CD6006C80AA /* browser-polyfill.js in Resources */ = {isa = PBXBuildFile; fileRef = 42708F382DA04CD6006C80AA /* browser-polyfill.js */; };
+		42708F3D2DA04CD6006C80AA /* script.js in Resources */ = {isa = PBXBuildFile; fileRef = 42708F3A2DA04CD6006C80AA /* script.js */; };
+		42708F3E2DA04CD6006C80AA /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 42708F372DA04CD6006C80AA /* background.js */; };
 		42755C3B24D89B1500B146A8 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42755C3A24D89B1500B146A8 /* SafariWebExtensionHandler.swift */; };
 		42755C4024D89B1500B146A8 /* images in Resources */ = {isa = PBXBuildFile; fileRef = 42755C3F24D89B1500B146A8 /* images */; };
 		42755C4224D89B1500B146A8 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 42755C4124D89B1500B146A8 /* manifest.json */; };
@@ -117,7 +120,10 @@
 		42690B602216CCC400DF8AB3 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		42690B622216D0A300DF8AB3 /* favicon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = favicon.png; sourceTree = "<group>"; };
 		42690B632216D0A300DF8AB3 /* favicon.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = favicon.ico; sourceTree = "<group>"; };
-		42708F352DA013EB006C80AA /* sw.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = sw.js; sourceTree = "<group>"; };
+		42708F372DA04CD6006C80AA /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = background.js; sourceTree = "<group>"; };
+		42708F382DA04CD6006C80AA /* browser-polyfill.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "browser-polyfill.js"; sourceTree = "<group>"; };
+		42708F392DA04CD6006C80AA /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = popup.html; sourceTree = "<group>"; };
+		42708F3A2DA04CD6006C80AA /* script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = script.js; sourceTree = "<group>"; };
 		42755C3724D89B1500B146A8 /* Sprinkles Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Sprinkles Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		42755C3A24D89B1500B146A8 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
 		42755C3F24D89B1500B146A8 /* images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = images; sourceTree = "<group>"; };
@@ -260,7 +266,10 @@
 		42755C3C24D89B1500B146A8 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				42708F352DA013EB006C80AA /* sw.js */,
+				42708F372DA04CD6006C80AA /* background.js */,
+				42708F382DA04CD6006C80AA /* browser-polyfill.js */,
+				42708F392DA04CD6006C80AA /* popup.html */,
+				42708F3A2DA04CD6006C80AA /* script.js */,
 				42755C3F24D89B1500B146A8 /* images */,
 				42755C4124D89B1500B146A8 /* manifest.json */,
 			);
@@ -488,8 +497,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				42708F362DA013EB006C80AA /* sw.js in Resources */,
 				42755C4024D89B1500B146A8 /* images in Resources */,
+				42708F3B2DA04CD6006C80AA /* popup.html in Resources */,
+				42708F3C2DA04CD6006C80AA /* browser-polyfill.js in Resources */,
+				42708F3D2DA04CD6006C80AA /* script.js in Resources */,
+				42708F3E2DA04CD6006C80AA /* background.js in Resources */,
 				42755C4224D89B1500B146A8 /* manifest.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
