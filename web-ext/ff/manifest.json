@@ -33,5 +33,10 @@
     "scripts": [
       "sw.js"
     ]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{588f4ebd-9540-4f57-943d-04c682e96db9}"
+    }
   }
 }
