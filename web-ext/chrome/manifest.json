@@ -18,13 +18,13 @@
   },
   "permissions": [
     "userScripts",
-    "scripting",
     "webNavigation"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "sw.js"
+    "service_worker": "sw.js",
+    "type": "module"
   }
 }
