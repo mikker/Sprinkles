@@ -106,7 +106,7 @@ async function fetchScript(domain) {
 
 async function register(domain, code) {
   console.log(`Registering user script for ${domain}`);
-  const matches = [`*://${domain}/*`];
+  const matches = [`*://${domain}/*`, `*://www.${domain}/*`];
   await chrome.userScripts.register([
     {
       id: `user-script-${domain}`,
