@@ -117,3 +117,20 @@ async function register(domain, matches, code) {
     },
   ]);
 }
+
+function setTheme(theme) {
+  const iconThemeKey = theme === 'dark' ? 'light' : 'dark';
+  fetch(chrome.runtime.getURL('manifest.json'))
+    .then(res => res.json())
+    .then(manifest => {
+      const themeIcons = manifest.action.theme_icons;
+      const iconPaths = themeIcons.reduce((iconPathsAccumulator, themeIcon) => iconPathsAccumulator[String(themeIcon.size)] = themeIcon[iconThemeKey]);
+      chrome.action.setIcon({ path: iconPaths });
+    });
+}
+
+chrome.runtime.onMessage.addListener(request => {
+  if (request.type === 'themeChange') {
+    setTheme(request.theme);
+  }
+});
