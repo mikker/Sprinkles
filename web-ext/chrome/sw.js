@@ -12,7 +12,7 @@ chrome.action.onClicked.addListener(() => {
   reload();
 });
 
-chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+chrome.webNavigation.onBeforeNavigate.addListener(async details => {
   // Skip iframe navigations
   if (details.frameId !== 0) return;
 
@@ -26,7 +26,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 
 async function checkForUpdates() {
   try {
-    const res = await fetch(`https://localhost:3133/v3/checksum.json`);
+    const res = await fetch('https://localhost:3133/v3/checksum.json');
     const { checksum } = await res.json();
 
     if (lastChecksum === null) {
@@ -35,12 +35,12 @@ async function checkForUpdates() {
     }
 
     if (checksum !== lastChecksum) {
-      console.log("Scripts changed, reloading...");
+      console.log('Scripts changed, reloading...');
       lastChecksum = checksum;
       await reload();
     }
   } catch (e) {
-    console.error("Failed to check for updates:", e);
+    console.error('Failed to check for updates:', e);
   }
 }
 
@@ -51,14 +51,14 @@ async function reload() {
   console.log(`Version: ${version.version}, build: ${version.build}`);
 
   if (version.build < minimumBuildNumber) {
-    console.log("Version mismatch");
+    console.log('Version mismatch');
 
-    chrome.action.setBadgeText({ text: "!" });
-    chrome.action.setBadgeBackgroundColor({ color: "#cc0000" });
-    chrome.action.setTitle({ title: "Please upgrade Sprinkles to continue" });
+    chrome.action.setBadgeText({ text: '!' });
+    chrome.action.setBadgeBackgroundColor({ color: '#cc0000' });
+    chrome.action.setTitle({ title: 'Please upgrade Sprinkles to continue' });
     chrome.action.onClicked.addListener(() => {
       chrome.tabs.create({
-        url: `https://getsprinkles.app/troubleshooting?version=${version.version}&build=${version.build}`,
+        url: `https://getsprinkles.app/troubleshooting?version=${version.version}&build=${version.build}`
       });
     });
 
@@ -70,7 +70,7 @@ async function reload() {
   const domains = await fetchList();
 
   await Promise.all(
-    domains.map(async (domain) => {
+    domains.map(async domain => {
       console.log(`Fetching user script for ${domain}`);
       const code = await fetchScript(domain);
       await register(domain, code);
@@ -84,7 +84,7 @@ async function fetchVersion() {
     return res.json();
   } catch (e) {
     console.error(e);
-    return { version: "unknown", build: 0 };
+    return { version: 'unknown', build: 0 };
   }
 }
 
@@ -94,8 +94,8 @@ async function fetchList() {
 }
 
 async function registerGlobal() {
-  const code = await fetchScript("global");
-  register("*", code);
+  const code = await fetchScript('global');
+  register('*', code);
 }
 
 async function fetchScript(domain) {
@@ -112,8 +112,27 @@ async function register(domain, code) {
       id: `user-script-${domain}`,
       matches,
       js: [{ code }],
-      runAt: "document_idle",
-      world: "MAIN",
-    },
+      runAt: 'document_idle',
+      world: 'MAIN'
+    }
   ]);
 }
+
+function setTheme(theme) {
+  const iconThemeKey = theme === 'dark' ? 'light' : 'dark';
+  fetch(chrome.runtime.getURL('manifest.json'))
+    .then(res => res.json())
+    .then(manifest => {
+      const themeIcons = manifest.action.theme_icons;
+      const iconPaths = themeIcons.reduce(
+        (iconPathsAccumulator, themeIcon) => (iconPathsAccumulator[String(themeIcon.size)] = themeIcon[iconThemeKey])
+      );
+      chrome.action.setIcon({ path: iconPaths });
+    });
+}
+
+chrome.runtime.onMessage.addListener(request => {
+  if (request.type === 'themeChange') {
+    setTheme(request.theme);
+  }
+});

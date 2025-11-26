@@ -14,7 +14,16 @@
       "16": "images/toolbar-icon-16.png",
       "32": "images/toolbar-icon-32.png"
     },
-    "default_title": "Reload user scripts"
+    "default_title": "Reload user scripts",
+    "theme_icons": [{
+      "light": "images/toolbar-icon-dark-16.png",
+      "dark": "images/toolbar-icon-16.png",
+      "size": 16
+    }, {
+      "light": "images/toolbar-icon-dark-32.png",
+      "dark": "images/toolbar-icon-32.png",
+      "size": 32
+    }]
   },
   "permissions": [
     "scripting",
