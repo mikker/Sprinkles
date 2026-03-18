@@ -1,24 +1,24 @@
 {
-  "images" : [
+  "images": [
     {
-      "idiom" : "universal",
-      "filename" : "Directory.pdf",
-      "scale" : "1x"
+      "idiom": "universal",
+      "filename": "Directory.pdf",
+      "scale": "1x"
     },
     {
-      "idiom" : "universal",
-      "scale" : "2x"
+      "idiom": "universal",
+      "scale": "2x"
     },
     {
-      "idiom" : "universal",
-      "scale" : "3x"
+      "idiom": "universal",
+      "scale": "3x"
     }
   ],
-  "info" : {
-    "version" : 1,
-    "author" : "xcode"
+  "info": {
+    "version": 1,
+    "author": "xcode"
   },
-  "properties" : {
-    "template-rendering-intent" : "template"
+  "properties": {
+    "template-rendering-intent": "template"
   }
 }

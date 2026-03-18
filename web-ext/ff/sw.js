@@ -14,15 +14,15 @@ browser.action.onClicked.addListener(async () => {
 
 browser.permissions.onAdded.addListener(async (permissions) => {
   if (permissions.permissions.includes("userScripts")) {
-    await reload()
+    await reload();
   }
-})
+});
 
 browser.permissions.onRemoved.addListener(async (permissions) => {
   if (permissions.permissions.includes("userScripts")) {
     await browser.userScripts.unregister();
   }
-})
+});
 
 browser.webNavigation.onBeforeNavigate.addListener(async (details) => {
   // Skip iframe navigations
@@ -57,7 +57,7 @@ async function checkForUpdates() {
 }
 
 async function reload() {
-  if (!await browser.permissions.contains({ permissions: ["userScripts"] })) {
+  if (!(await browser.permissions.contains({ permissions: ["userScripts"] }))) {
     console.log("userScripts permission not granted");
     browser.runtime.openOptionsPage();
     return;
@@ -91,9 +91,9 @@ async function reload() {
     domains.map(async (domain) => {
       console.log(`Fetching user script for ${domain}`);
       const code = await fetchScript(domain);
-      const matches = [`*://${domain}/*`, `*://www\.${domain}/*`];
+      const matches = [`*://${domain}/*`, `*://www.${domain}/*`];
       await register(domain, matches, code);
-    })
+    }),
   );
 }
 
