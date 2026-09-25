@@ -102,8 +102,7 @@ class Server {
   }
 
   private func handleScriptsReq(request: HTTPRequest) -> HTTPResponse {
-    guard let domain = "/s\\/(.*)\\.js".r?.findFirst(in: request.uri.path)?.group(at: 1)
-    else {
+    guard let domain = Server.parseDomain(request.uri.path) else {
       return HTTPResponse(.unprocessableEntity, content: "console.log('Failed parsing domain')")
     }
 
@@ -117,8 +116,7 @@ class Server {
   }
 
   private func handleScriptsLegacyReq(request: HTTPRequest) -> HTTPResponse {
-    guard let domain = "/s\\/(.*)\\.js".r?.findFirst(in: request.uri.path)?.group(at: 1)
-    else {
+    guard let domain = Server.parseDomain(request.uri.path) else {
       return HTTPResponse(.unprocessableEntity, content: "console.log('Failed parsing domain')")
     }
 
@@ -152,23 +150,65 @@ class Server {
       return HTTPResponse(.internalServerError, content: "{}")
     }
 
-    let fileManager = FileManager.default
-    let files = (try? fileManager.contentsOfDirectory(atPath: directory.path)) ?? []
-    let scriptFiles = files.filter { $0.hasSuffix(".js") || $0.hasSuffix(".css") }
-
-    var checksum = 0
-    for file in scriptFiles {
-      let fileURL = directory.appendingPathComponent(file)
-      if let data = try? Data(contentsOf: fileURL) {
-        checksum ^= data.hashValue
-      }
-    }
-
-    let json: [String: Any] = ["checksum": checksum]
+    let json: [String: Any] = ["checksum": Server.checksum(directoryURL: directory)]
     let jsonData = try? JSONSerialization.data(withJSONObject: json)
     let jsonString = String(data: jsonData ?? Data(), encoding: .utf8) ?? "{}"
 
     return HTTPResponse(.ok, headers: jsonHeaders, content: jsonString)
+  }
+
+  /// Extracts "example.com" from paths like "/s/example.com.js". Rejects anything that
+  /// could escape the scripts directory.
+  static func parseDomain(_ path: String) -> String? {
+    guard let range = path.range(of: "/s/"), path.hasSuffix(".js") else { return nil }
+    let rest = path[range.upperBound...]
+    guard rest.count > 3 else { return nil }
+    let domain = String(rest.dropLast(3))
+
+    if domain.contains("/") || domain.contains("\\") || domain.hasPrefix(".") {
+      return nil
+    }
+
+    return domain
+  }
+
+  /// XOR of FNV-1a hashes of each script file's name and contents. Unlike `hashValue` it is
+  /// stable across launches, changes when a file is added or renamed, and stays within
+  /// JavaScript's safe integer range.
+  static func checksum(directoryURL: URL) -> Int {
+    let files = (try? FileManager.default.contentsOfDirectory(atPath: directoryURL.path)) ?? []
+
+    var checksum: UInt64 = 0
+    for file in files where file.hasSuffix(".js") || file.hasSuffix(".css") {
+      guard let data = try? Data(contentsOf: directoryURL.appendingPathComponent(file)) else {
+        continue
+      }
+      var bytes = Data(file.utf8)
+      bytes.append(0)
+      bytes.append(data)
+      checksum ^= fnv1a(bytes)
+    }
+
+    return Int(checksum & ((1 << 53) - 1))
+  }
+
+  private static func fnv1a(_ data: Data) -> UInt64 {
+    var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+    for byte in data {
+      hash ^= UInt64(byte)
+      hash = hash &* 0x100_0000_01b3
+    }
+    return hash
+  }
+
+  /// Makes `string` safe to embed in a JS `template literal`, so backslashes
+  /// (eg. `content: "\201C"`), backticks and ${ survive as-is.
+  static func escapeTemplateLiteral(_ string: String) -> String {
+    return
+      string
+      .replacingOccurrences(of: "\\", with: "\\\\")
+      .replacingOccurrences(of: "`", with: "\\`")
+      .replacingOccurrences(of: "${", with: "\\${")
   }
 
   private func compileSet(_ base: String, directoryURL: URL) -> String {
@@ -198,6 +238,7 @@ class Server {
 
   private func injectStyleElement(_ label: String, _ css: String) -> String {
     let fnName = "_SprinklesInjectStyles_\(randomChars())"
+    let css = Server.escapeTemplateLiteral(css)
 
     return """
       ;function \(fnName)() {
