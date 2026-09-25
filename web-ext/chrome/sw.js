@@ -9,8 +9,24 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.action.onClicked.addListener(() => {
+  if (!isUserScriptsAvailable()) {
+    chrome.tabs.create({ url: `chrome://extensions/?id=${chrome.runtime.id}` });
+    return;
+  }
+
   reload();
 });
+
+// chrome.userScripts is unavailable until the user turns on both Developer mode
+// and "Allow User Scripts" for the extension in chrome://extensions
+function isUserScriptsAvailable() {
+  try {
+    chrome.userScripts.getScripts();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   // Skip iframe navigations
@@ -45,6 +61,24 @@ async function checkForUpdates() {
 }
 
 async function reload() {
+  if (!isUserScriptsAvailable()) {
+    console.log(
+      'User scripts not allowed. Enable Developer mode and "Allow User Scripts" for Sprinkles in chrome://extensions.',
+    );
+
+    chrome.action.setBadgeText({ text: "!" });
+    chrome.action.setBadgeBackgroundColor({ color: "#cc0000" });
+    chrome.action.setTitle({
+      title:
+        'Sprinkles needs Developer mode and "Allow User Scripts" enabled. Click to open settings, then click again to reload.',
+    });
+
+    return;
+  }
+
+  chrome.action.setBadgeText({ text: "" });
+  chrome.action.setTitle({ title: "Reload user scripts" });
+
   await chrome.userScripts.unregister();
 
   const version = await fetchVersion();
