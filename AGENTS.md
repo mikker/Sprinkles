@@ -9,6 +9,7 @@
 - `web-ext/` contains packaged Chrome/Firefox extension builds and source folders.
 - `Updates/` stores prebuilt app archives used for distribution.
 - `bin/` includes project scripts (version bumping, extension release, reset install).
+- `cli/` is the Linux/CLI server (Go): same API as the Mac app. Build with `go build`, test with `go test ./...`.
 
 ## Build, Test, and Development Commands
 
