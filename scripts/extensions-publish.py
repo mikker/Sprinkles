@@ -98,8 +98,14 @@ def publish_chrome(zip_path, dry_run):
                          {**headers, "Content-Type": "application/zip"}, open(zip_path, "rb").read())
         if result.get("uploadState") != "SUCCESS":
             die(f"Chrome upload failed: {json.dumps(result.get('itemError') or result)}")
-    _, published = http("POST", f"https://www.googleapis.com/chromewebstore/v1.1/items/{CWS_ITEM_ID}/publish",
-                        {**headers, "Content-Length": "0"}, b"")
+    try:
+        _, published = http("POST", f"https://www.googleapis.com/chromewebstore/v1.1/items/{CWS_ITEM_ID}/publish",
+                            {**headers, "Content-Length": "0"}, b"")
+    except RuntimeError as e:
+        if "in review" in str(e):
+            print(f"==> Chrome: {version} is already in review; nothing to do")
+            return
+        raise
     status = published.get("status", [])
     detail = "; ".join(published.get("statusDetail", []))
     if any(s in ("OK", "ITEM_PENDING_REVIEW", "PUBLISHED_WITH_FRICTION_WARNING") for s in status):
