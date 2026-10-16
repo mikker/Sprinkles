@@ -16,8 +16,9 @@
     },
     "default_title": "Reload user scripts"
   },
-  "permissions": ["userScripts", "webNavigation"],
+  "permissions": ["offscreen", "userScripts", "webNavigation"],
   "host_permissions": ["<all_urls>"],
+  "minimum_chrome_version": "120",
   "background": {
     "service_worker": "sw.js",
     "type": "module"

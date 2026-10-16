@@ -6,6 +6,16 @@ const CHECK_THROTTLE_MS = 1000; // Only check once per second
 
 chrome.runtime.onInstalled.addListener(() => {
   reload();
+  syncToolbarIcon();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  syncToolbarIcon();
+});
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type !== "sprinkles:color-scheme") return;
+  setToolbarIcon(message.dark);
 });
 
 chrome.action.onClicked.addListener(() => {
@@ -151,3 +161,64 @@ async function register(domain, matches, code) {
     },
   ]);
 }
+
+// Chrome has no manifest-level theme icons, so an offscreen document watches
+// prefers-color-scheme and reports back. Service workers restart often, so
+// this also runs at the top level of the worker.
+
+const OFFSCREEN_URL = "offscreen.html";
+let creatingOffscreen = null;
+
+async function hasOffscreenDocument() {
+  const contexts = await chrome.runtime.getContexts({
+    contextTypes: ["OFFSCREEN_DOCUMENT"],
+    documentUrls: [chrome.runtime.getURL(OFFSCREEN_URL)],
+  });
+  return contexts.length > 0;
+}
+
+async function ensureOffscreenDocument() {
+  if (await hasOffscreenDocument()) return;
+
+  if (!creatingOffscreen) {
+    creatingOffscreen = chrome.offscreen
+      .createDocument({
+        url: OFFSCREEN_URL,
+        reasons: ["MATCH_MEDIA"],
+        justification: "Match the toolbar icon to the browser's color scheme",
+      })
+      .catch((e) => {
+        // Another context may have created it in the meantime
+        if (!String(e?.message).includes("single offscreen")) throw e;
+      })
+      .finally(() => {
+        creatingOffscreen = null;
+      });
+  }
+
+  await creatingOffscreen;
+}
+
+async function syncToolbarIcon() {
+  try {
+    await ensureOffscreenDocument();
+    const response = await chrome.runtime.sendMessage({
+      type: "sprinkles:get-color-scheme",
+    });
+    if (response) setToolbarIcon(response.dark);
+  } catch (e) {
+    console.error("Failed to sync toolbar icon:", e);
+  }
+}
+
+function setToolbarIcon(dark) {
+  const suffix = dark ? "-dark" : "";
+  chrome.action.setIcon({
+    path: {
+      16: `images/toolbar-icon${suffix}-16.png`,
+      32: `images/toolbar-icon${suffix}-32.png`,
+    },
+  });
+}
+
+syncToolbarIcon();
