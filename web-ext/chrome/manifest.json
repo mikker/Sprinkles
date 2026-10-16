@@ -16,7 +16,7 @@
     },
     "default_title": "Reload user scripts"
   },
-  "permissions": ["offscreen", "userScripts", "webNavigation"],
+  "permissions": ["offscreen", "storage", "userScripts", "webNavigation"],
   "host_permissions": ["<all_urls>"],
   "minimum_chrome_version": "120",
   "background": {
