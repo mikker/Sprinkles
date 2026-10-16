@@ -16,11 +16,11 @@ Review happens on Apple's side. When the version is approved it is released auto
 
 The Chrome and Firefox extensions have their own version in `web-ext/chrome/manifest.json` and `web-ext/ff/manifest.json`, bumped by hand when they change. `just release` refuses to run when files under `web-ext/` changed since the last tag and the manifest versions did not. The Safari extension takes the app's version.
 
-`just extensions` zips both into `dist/chrome-extension.zip` and `dist/firefox-extension.zip`. Submitting them is manual: the [Chrome Web Store developer console](https://chrome.google.com/webstore/devconsole) and [addons.mozilla.org](https://addons.mozilla.org/developers/addon/getsprinkles/versions/submit/). `scripts/release-ext.sh` opens both.
+`just extensions` zips both into `dist/chrome-extension.zip` and `dist/firefox-extension.zip`. `just release` then runs `scripts/extensions-publish.py`, which uploads the Chrome zip to the Web Store item and publishes it (Google reviews it, then it goes live), and uploads the Firefox zip to addons.mozilla.org, waits for its validation, and creates the listed version with the changelog section as release notes (Mozilla reviews it). A version that is already on a store is skipped, so rerunning is safe. `just publish-extensions chrome|firefox|all [--dry-run]` runs it by hand; `scripts/release-ext.sh --open` is the manual fallback.
 
 ## Credentials
 
-Everything runs on your Mac with your own credentials; nothing is in CI.
+Everything runs on your Mac with your own credentials in the ignored `.env`; nothing is in CI.
 
 - **Signing.** Targets use automatic signing with team `DDB8SQMXS9`. The export and upload pass `-allowProvisioningUpdates`, so Xcode creates the Apple Distribution certificate and the Mac App Store provisioning profile the first time, using the Apple ID signed into Xcode or the API key below.
 - **App Store Connect API key.** Create a team key with the App Manager role at [App Store Connect › Users and Access › Integrations › App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api), download the `.p8` once, and put it at `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8`, where `xcodebuild` also looks. Put the IDs in `.env` (ignored) so `just` loads them:
@@ -30,7 +30,9 @@ Everything runs on your Mac with your own credentials; nothing is in CI.
   ASC_ISSUER_ID=12345678-1234-1234-1234-123456789012
   ```
 
-  The upload uses the key through `xcodebuild`; `scripts/appstore.py` signs its own JWTs with it using `openssl`, so no Python packages are needed. A Developer-role key (such as the one notarytool uses) can upload but can't create versions or submit; the App Manager role can do all of it.
+  The upload uses the key through `xcodebuild`; `scripts/appstore.py` signs its own JWTs with it using `openssl`, so no Python packages are needed. A Developer-role key (such as the one notarytool uses) can upload but can't create versions or submit; the App Manager role can do all of it. `prepare` also answers Apple's age rating questionnaire (all "none" for Sprinkles; the answers live in `scripts/appstore.py`).
+- **Chrome Web Store API.** Once: in [Google Cloud Console](https://console.cloud.google.com/) create a project, enable the "Chrome Web Store API", set up the OAuth consent screen (External, add your own Google account as a test user), and create an OAuth client of type "Desktop app". Put its ID and secret in `.env` as `CWS_CLIENT_ID` and `CWS_CLIENT_SECRET`, then run `scripts/cws-auth.py`: it opens the consent page, you sign in with the account that owns the Web Store item, and it prints the `CWS_REFRESH_TOKEN` line for `.env`. Refresh tokens from a consent screen left in "Testing" expire after 7 days, so publish the consent screen (no verification is needed for your own account) or rerun `cws-auth.py` when uploads fail with `invalid_grant`.
+- **addons.mozilla.org API.** Once: generate credentials at [addons.mozilla.org/developers/addon/api/key](https://addons.mozilla.org/developers/addon/api/key/) and put them in `.env` as `AMO_JWT_ISSUER` (the "JWT issuer", `user:…`) and `AMO_JWT_SECRET`.
 - **GitHub.** `gh` must be logged in with push access to `mikker/Sprinkles`.
 
 ## What the scripts need

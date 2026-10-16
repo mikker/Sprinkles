@@ -65,6 +65,11 @@ package version="":
 upload:
   scripts/package-release.sh --upload
 
+# Upload and publish the extension zips in dist/ to the Chrome Web Store and addons.mozilla.org.
+[positional-arguments]
+publish-extensions *args:
+  python3 scripts/extensions-publish.py "$@"
+
 # One App Store Connect step by hand: builds | prepare X.Y | submit X.Y | status.
 [positional-arguments]
 appstore *args:

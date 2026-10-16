@@ -119,10 +119,19 @@ if [[ -z "${ASC_KEY_ID:-}" ]]; then
   cat >&2 <<EOF
 ==> Build $version ($build) is uploaded and the GitHub release is published, but the App Store version was not
     created or submitted: set ASC_KEY_ID and ASC_ISSUER_ID (RELEASING.md) and rerun, or finish it in App Store Connect.
-    The extension zips in dist/ still need uploading to the Chrome Web Store and addons.mozilla.org.
+    The extension zips in dist/ were not uploaded either (scripts/extensions-publish.py).
 EOF
   exit 2
 fi
 python3 scripts/appstore.py prepare "$version" --build "$build" --notes dist/release-notes.md --wait
 python3 scripts/appstore.py submit "$version"
-echo "==> Submitted $version for review. The extension zips in dist/ still need uploading to the Chrome Web Store and addons.mozilla.org (scripts/release-ext.sh --open)."
+echo "==> Submitted $version for review"
+
+if [[ -z "${CWS_REFRESH_TOKEN:-}" || -z "${AMO_JWT_SECRET:-}" ]]; then
+  cat >&2 <<EOF
+==> The extension zips in dist/ were not uploaded: set CWS_CLIENT_ID, CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN and
+    AMO_JWT_ISSUER, AMO_JWT_SECRET (RELEASING.md) and rerun, or use scripts/release-ext.sh --open.
+EOF
+  exit 2
+fi
+python3 scripts/extensions-publish.py all --notes dist/release-notes.md

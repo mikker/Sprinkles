@@ -57,8 +57,10 @@ Start from a clean local `main` that exactly matches `origin/main`. The command 
 `## Unreleased` into `## X.Y`, sets the version and build number, commits and pushes `Release X.Y`,
 archives and uploads the app to App Store Connect, tags, publishes the GitHub release with that
 changelog section as its notes and the extension zips as assets, then creates the App Store version
-with the same notes, attaches the build and submits it for review. After a failure, rerun the same
+with the same notes, attaches the build and submits it for review, then uploads and submits the Chrome
+and Firefox extensions when their versions are new. After a failure, rerun the same
 command without adding commits; it reuses the prepared commit and never re-uploads a build. Signing
 and the upload need the local keychain and the App Store Connect API key, so run it on the release Mac.
 
-The Chrome Web Store and addons.mozilla.org uploads stay manual: `scripts/release-ext.sh --open`.
+The Chrome Web Store and addons.mozilla.org uploads run at the end (`scripts/extensions-publish.py`,
+idempotent); without their credentials the command exits 2 after the App Store submission and says so.
