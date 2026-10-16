@@ -1,9 +1,12 @@
 *xcuserdata*
 /Carthage
-/Resources
 /Updates/Sprinkles.app
 /Updates/Sprinkles*.zip
 .DS_Store
 Sprinkles Extension/Resources/*.zip
 Archive.zip
 web-ext/build/*
+/Resources/*
+!/Resources/AppIcon.appiconset/
+/Resources/AppIcon.appiconset/*
+!/Resources/AppIcon.appiconset/logo.png
