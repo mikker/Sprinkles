@@ -21,9 +21,9 @@
     });
   }
 
-  function apply(script) {
+  function apply(scripts) {
     if (!document.body) {
-      document.addEventListener("DOMContentLoaded", () => apply(script), {
+      document.addEventListener("DOMContentLoaded", () => apply(scripts), {
         once: true,
       });
       return;
@@ -31,36 +31,44 @@
 
     dispatch({ event: "begin_apply" });
 
-    if (!script) return;
+    // Evaluated separately so an error in one file doesn't stop the other
+    const results = scripts.filter(Boolean).map((script) => run(script));
+    if (results.length && results.every(Boolean)) dispatch({ event: "ok" });
+  }
 
+  // No other locals here, so `var`s in the user's script can't clash with ours
+  function run(script) {
     try {
       eval(script);
-      dispatch({ event: "ok" });
+      return true;
     } catch (error) {
       log("Sprinkles failed running your script", { error });
       dispatch({ event: "eval_failed", error: `${error}` });
+      return false;
     }
   }
 
-  const ignoreList = [/stripe/];
+  function isIgnored(host) {
+    return host === "stripe.com" || host.endsWith(".stripe.com");
+  }
 
   async function main() {
     const host = location.hostname.replace(/^www\./, "");
 
-    for (const re of ignoreList) {
-      if (re.test(host)) {
-        log(`Ignoring host "${host}"`);
-        return;
-      }
+    if (isIgnored(host)) {
+      log(`Ignoring host "${host}"`);
+      return;
     }
 
-    const filename = host + ".js";
-
     try {
-      const js = await fetch("https://localhost:3133/s/" + filename).then(
-        (resp) => resp.text(),
-      );
-      apply(js);
+      // Fetched by the background page so the request carries the extension's origin
+      const resp = await browser.runtime.sendMessage({
+        event: "fetch",
+        domain: host,
+      });
+      if (!resp || resp.error) throw new Error(resp ? resp.error : "No response");
+
+      apply([resp.global, resp.domain]);
     } catch (error) {
       log("Sprinkles failed requesting your scripts", { error });
       dispatch({ event: "request_failed", error: `${error}` });

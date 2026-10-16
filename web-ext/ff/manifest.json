@@ -28,7 +28,7 @@
       }
     ]
   },
-  "permissions": ["scripting", "storage", "webNavigation"],
+  "permissions": ["storage", "webNavigation"],
   "options_ui": {
     "page": "options.html"
   },
