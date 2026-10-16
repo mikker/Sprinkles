@@ -118,8 +118,10 @@ class SprinklesCertificate {
       print(SecCopyErrorMessageString(status, nil) ?? "unknown" as CFString)
 
       let query = NSDictionary.init(
-        objects: [kSecClassCertificate, rootCert],
-        forKeys: [kSecClass as! NSCopying, kSecValueRef as! NSCopying])
+        objects: [kSecClassCertificate, [rootCert]],
+        forKeys: [kSecClass as! NSCopying, kSecMatchItemList as! NSCopying])
+      // kSecValueRef fails with errSecInvalidItemRef for a cert created from file data;
+      // kSecMatchItemList matches the keychain copy by content
       status = SecItemDelete(query)
       print(SecCopyErrorMessageString(status, nil) ?? "unknown" as CFString)
     }
