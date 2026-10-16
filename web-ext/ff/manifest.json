@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Sprinkles",
   "description": "The Sprinkles bread and butter",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "icons": {
     "16": "images/icon-16.png",
     "32": "images/icon-32.png",
