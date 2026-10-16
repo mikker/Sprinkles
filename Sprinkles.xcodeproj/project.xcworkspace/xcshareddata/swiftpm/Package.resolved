@@ -38,15 +38,6 @@
       }
     },
     {
-      "identity" : "regex",
-      "kind" : "remoteSourceControl",
-      "location" : "git@github.com:crossroadlabs/Regex.git",
-      "state" : {
-        "revision" : "166728756082a9cac6e4aed3ebbce8e41cb3a945",
-        "version" : "1.2.0"
-      }
-    },
-    {
       "identity" : "settings",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sindresorhus/Settings",

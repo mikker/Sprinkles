@@ -39,7 +39,6 @@
 		42BC395A244450890082F7EB /* General.xib in Resources */ = {isa = PBXBuildFile; fileRef = 42BC3959244450890082F7EB /* General.xib */; };
 		42BD715A2C7DC5D8009C5C78 /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 42BD71592C7DC5D8009C5C78 /* logo.png */; };
 		42D952422575ABC500CBF4A4 /* Telegraph in Frameworks */ = {isa = PBXBuildFile; productRef = 42D952412575ABC500CBF4A4 /* Telegraph */; };
-		42DFEDE5234E217C00916DCB /* Regex in Frameworks */ = {isa = PBXBuildFile; productRef = 42DFEDE4234E217C00916DCB /* Regex */; };
 		42E163BD2C7DF66000B02C6D /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = 42E163BC2C7DF66000B02C6D /* Defaults */; };
 		42E163C32C7DF7E900B02C6D /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 42E163C22C7DF7E900B02C6D /* LaunchAtLogin */; };
 		42E163C62C7DFA9700B02C6D /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = 42E163C52C7DFA9700B02C6D /* Settings */; };
@@ -146,7 +145,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				42DFEDE5234E217C00916DCB /* Regex in Frameworks */,
 				42E163C62C7DFA9700B02C6D /* Settings in Frameworks */,
 				42D952422575ABC500CBF4A4 /* Telegraph in Frameworks */,
 				42E163C32C7DF7E900B02C6D /* LaunchAtLogin in Frameworks */,
@@ -327,7 +325,6 @@
 			);
 			name = Sprinkles;
 			packageProductDependencies = (
-				42DFEDE4234E217C00916DCB /* Regex */,
 				42D952412575ABC500CBF4A4 /* Telegraph */,
 				42E163BC2C7DF66000B02C6D /* Defaults */,
 				42E163C22C7DF7E900B02C6D /* LaunchAtLogin */,
@@ -441,7 +438,6 @@
 			);
 			mainGroup = 425A176A21EFC86500C57D44;
 			packageReferences = (
-				42DFEDE3234E217C00916DCB /* XCRemoteSwiftPackageReference "Regex" */,
 				42D952402575ABC500CBF4A4 /* XCRemoteSwiftPackageReference "Telegraph" */,
 				42BD715C2C7DF3CB009C5C78 /* XCRemoteSwiftPackageReference "Defaults" */,
 				42E163C12C7DF7E900B02C6D /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
@@ -968,14 +964,6 @@
 				minimumVersion = 0.28.0;
 			};
 		};
-		42DFEDE3234E217C00916DCB /* XCRemoteSwiftPackageReference "Regex" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:crossroadlabs/Regex.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
-			};
-		};
 		42E163C12C7DF7E900B02C6D /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
@@ -999,11 +987,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 42D952402575ABC500CBF4A4 /* XCRemoteSwiftPackageReference "Telegraph" */;
 			productName = Telegraph;
-		};
-		42DFEDE4234E217C00916DCB /* Regex */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 42DFEDE3234E217C00916DCB /* XCRemoteSwiftPackageReference "Regex" */;
-			productName = Regex;
 		};
 		42E163BC2C7DF66000B02C6D /* Defaults */ = {
 			isa = XCSwiftPackageProductDependency;

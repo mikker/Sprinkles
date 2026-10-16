@@ -1,6 +1,5 @@
 import Defaults
 import Foundation
-import Regex
 import Telegraph
 
 public enum ServerState: Equatable {
@@ -173,8 +172,7 @@ class Server: ServerDelegate {
       files
       .filter { $0.hasSuffix(".js") || $0.hasSuffix(".css") }
       .filter { !$0.hasPrefix(".") }
-      .map { "(\\.js|\\.css)$".r?.replaceAll(in: $0, with: "") }
-      .compactMap { $0 }
+      .map { $0.hasSuffix(".js") ? String($0.dropLast(3)) : String($0.dropLast(4)) }
       .filter { $0 != "global" }
     return Array(Set(domains)).sorted()
   }
