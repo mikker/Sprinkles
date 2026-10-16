@@ -9,12 +9,54 @@ class SprinklesCertificate {
   static let keyPath = "\(dir)/key.pem"
   static let certPath = "\(dir)/cert.pem"
   static let p12Path = "\(dir)/identity.p12"
+  static let versionPath = "\(dir)/version"
+
+  /// Bump when gen_cert.sh changes in a way that requires regenerating existing certs.
+  static let currentVersion = 2
+  static let renewalWindow: TimeInterval = 30 * 24 * 60 * 60
 
   static var exists: Bool {
     return FileManager.default.fileExists(atPath: caPath)
       && FileManager.default.fileExists(atPath: keyPath)
       && FileManager.default.fileExists(atPath: certPath)
       && FileManager.default.fileExists(atPath: p12Path)
+  }
+
+  /// True when the certs were made by an older gen_cert.sh or are about to expire.
+  static var needsRenewal: Bool {
+    guard exists else { return false }
+
+    let version =
+      (try? String(contentsOfFile: versionPath, encoding: .utf8))
+      .flatMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) } ?? 0
+    if version < currentVersion { return true }
+
+    guard let pem = try? String(contentsOfFile: certPath, encoding: .utf8),
+      let expiry = notAfter(pem: pem)
+    else { return true }
+
+    return expiry.timeIntervalSinceNow < renewalWindow
+  }
+
+  static func der(fromPEM pem: String) -> Data? {
+    let base64 =
+      pem
+      .components(separatedBy: .newlines)
+      .filter { !$0.hasPrefix("-----") }
+      .joined()
+    return Data(base64Encoded: base64)
+  }
+
+  static func notAfter(pem: String) -> Date? {
+    guard let der = der(fromPEM: pem),
+      let cert = SecCertificateCreateWithData(nil, der as CFData),
+      let values = SecCertificateCopyValues(
+        cert, [kSecOIDX509V1ValidityNotAfter] as CFArray, nil) as? [String: Any],
+      let notAfter = values[kSecOIDX509V1ValidityNotAfter as String] as? [String: Any],
+      let seconds = notAfter[kSecPropertyKeyValue as String] as? NSNumber
+    else { return nil }
+
+    return Date(timeIntervalSinceReferenceDate: seconds.doubleValue)
   }
 
   static func generateCertsIfMissing(_ callback: @escaping (Bool) -> Void) {

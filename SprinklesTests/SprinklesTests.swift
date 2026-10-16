@@ -84,6 +84,36 @@ class SprinklesTests: XCTestCase {
     XCTAssertTrue(ExampleFiles.globalCSS.hasSuffix("\n"))
   }
 
+  func testCertificateNotAfter() {
+    // openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes \
+    //   -subj /CN=localhost -not_before 20260101000000Z -not_after 20300102030405Z
+    let pem = """
+      -----BEGIN CERTIFICATE-----
+      MIIBWzCCAQKgAwIBAgIUCju7yWgW1jyaBkWDDSbuGN4+P2cwCgYIKoZIzj0EAwIw
+      FDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTI2MDEwMTAwMDAwMFoXDTMwMDEwMjAz
+      MDQwNVowFDESMBAGA1UEAwwJbG9jYWxob3N0MFkwEwYHKoZIzj0CAQYIKoZIzj0D
+      AQcDQgAEHWjCqTnbGn2pD876lGYfyRmd6psjAkPJTTyjb2DtoSEj2y+xxy/9IXf9
+      EmCDFX9qYnBTSFw5oyWtwSo9+d314qMyMDAwHQYDVR0OBBYEFJPtoKP/sOzT1EpH
+      0olWML5LWrV8MA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDRwAwRAIgUo0o
+      JgL5KP51O2EndBWmmP+b63DdUoz3v6B1GeguRP0CIBV6brwYrMxIy2yiDJ8tH10T
+      UtqHvKK/g6TthdSF5aNS
+      -----END CERTIFICATE-----
+
+      """
+
+    let der = SprinklesCertificate.der(fromPEM: pem)
+    XCTAssertEqual(der?.count, 351)
+    XCTAssertEqual(der?.first, 0x30)
+
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "UTC")!
+    let expected = calendar.date(
+      from: DateComponents(year: 2030, month: 1, day: 2, hour: 3, minute: 4, second: 5))
+    XCTAssertEqual(SprinklesCertificate.notAfter(pem: pem), expected)
+
+    XCTAssertNil(SprinklesCertificate.notAfter(pem: "not a certificate"))
+  }
+
   func testPerformanceExample() {
     // This is an example of a performance test case.
     self.measure {

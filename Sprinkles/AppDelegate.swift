@@ -11,6 +11,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   @IBOutlet var onboarding: OnboardingController!
 
   var hasShownServerFailure = false
+  var isRenewingCert = false
 
   lazy var preferences = SettingsWindowController(
     panes: [GeneralPreferencesController()], style: .segmentedControl)
@@ -22,8 +23,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       Defaults[.userId] = UUID().uuidString
     }
 
+    if store.state.hasCert && SprinklesCertificate.needsRenewal && askToRenewCertificate() {
+      isRenewingCert = true
+    }
+
     _ = store.subscribe { state in
-      if state.hasCert && state.directory != nil {
+      if state.hasCert && state.directory != nil && !self.isRenewingCert {
         Server.instance.start(3133)
       }
 
@@ -31,6 +36,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.hasShownServerFailure = true
         self.showServerFailure(reason)
       }
+    }
+
+    if isRenewingCert {
+      renewCertificate()
     }
 
     if Defaults[.showPreferencesOnLaunch] {
@@ -65,6 +74,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     NSApp.activate(ignoringOtherApps: true)
     if alert.runModal() == .alertFirstButtonReturn {
       showOnboarding()
+    }
+  }
+
+  func askToRenewCertificate() -> Bool {
+    let alert = NSAlert()
+    alert.alertStyle = .informational
+    alert.messageText = "Renew certificate"
+    alert.informativeText =
+      "Sprinkles needs to renew its local certificate. macOS will ask for your password to trust the new certificate."
+    alert.addButton(withTitle: "Renew")
+    alert.addButton(withTitle: "Later")
+
+    NSApp.activate(ignoringOtherApps: true)
+    return alert.runModal() == .alertFirstButtonReturn
+  }
+
+  func renewCertificate() {
+    SprinklesCertificate.destroy()
+    SprinklesCertificate.generateCertsIfMissing { ok in
+      self.isRenewingCert = false
+      store.dispatch(.hasCert(ok))
+
+      if !ok {
+        self.hasShownServerFailure = true
+        self.showServerFailure(
+          "Couldn't renew the Sprinkles certificate. \(Server.onboardingAdvice)")
+      }
     }
   }
 
