@@ -51,18 +51,24 @@ class SprinklesCertificate {
       forKeys: [kSecClass as! NSCopying, kSecValueRef as! NSCopying])
 
     err = SecItemAdd(dict, nil)
-    print(SecCopyErrorMessageString(err, nil)!)
+    print(SecCopyErrorMessageString(err, nil) ?? "unknown" as CFString)
 
     var status: OSStatus = noErr
     status = SecTrustSettingsSetTrustSettings(rootCert, SecTrustSettingsDomain.user, nil)
-    print(SecCopyErrorMessageString(status, nil)!)
+    print(SecCopyErrorMessageString(status, nil) ?? "unknown" as CFString)
   }
 
   static func destroy() {
     if let rootCert = rootCert() {
       var status: OSStatus = noErr
-      status = SecTrustSettingsSetTrustSettings(rootCert, SecTrustSettingsDomain.user, nil)
-      print(SecCopyErrorMessageString(status, nil)!)
+      status = SecTrustSettingsRemoveTrustSettings(rootCert, SecTrustSettingsDomain.user)
+      print(SecCopyErrorMessageString(status, nil) ?? "unknown" as CFString)
+
+      let query = NSDictionary.init(
+        objects: [kSecClassCertificate, rootCert],
+        forKeys: [kSecClass as! NSCopying, kSecValueRef as! NSCopying])
+      status = SecItemDelete(query)
+      print(SecCopyErrorMessageString(status, nil) ?? "unknown" as CFString)
     }
 
     do {

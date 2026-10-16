@@ -63,7 +63,7 @@ class Server: ServerDelegate {
     server.serveBundle(.main, "/")
 
     do {
-      try server.start(port: port)
+      try server.start(port: port, interface: "localhost")
     } catch {
       print(error)
       let nsError = error as NSError
@@ -103,14 +103,8 @@ class Server: ServerDelegate {
 
     let fileManager = FileManager.default
     let files = (try? fileManager.contentsOfDirectory(atPath: directory.path)) ?? []
-    let domains =
-      files
-      .filter { $0.hasSuffix(".js") || $0.hasSuffix(".css") }
-      .filter { !$0.hasPrefix("global") }
-      .map { "(\\.js|\\.css)$".r?.replaceAll(in: $0, with: "") }
-    let uniqueDomains = Array(Set(domains.compactMap { $0 })).sorted()
 
-    let jsonData = try? JSONSerialization.data(withJSONObject: uniqueDomains)
+    let jsonData = try? JSONSerialization.data(withJSONObject: Server.domains(in: files))
     let jsonString = String(data: jsonData ?? Data(), encoding: .utf8) ?? "[]"
 
     return HTTPResponse(.ok, headers: jsonHeaders, content: jsonString)
@@ -170,6 +164,19 @@ class Server: ServerDelegate {
     let jsonString = String(data: jsonData ?? Data(), encoding: .utf8) ?? "{}"
 
     return HTTPResponse(.ok, headers: jsonHeaders, content: jsonString)
+  }
+
+  /// Domains that have a script or stylesheet in `files`, excluding the global set and
+  /// hidden files (eg. macOS `._` metadata files).
+  static func domains(in files: [String]) -> [String] {
+    let domains =
+      files
+      .filter { $0.hasSuffix(".js") || $0.hasSuffix(".css") }
+      .filter { !$0.hasPrefix(".") }
+      .map { "(\\.js|\\.css)$".r?.replaceAll(in: $0, with: "") }
+      .compactMap { $0 }
+      .filter { $0 != "global" }
+    return Array(Set(domains)).sorted()
   }
 
   /// Extracts "example.com" from paths like "/s/example.com.js". Rejects anything that
@@ -267,16 +274,7 @@ class Server: ServerDelegate {
         var e = d.createElement('style');
         e.dataset.sprinklesInjected = 1;
 
-        var content = `\(css)`;
-        if (window.trustedTypes && trustedTypes.createPolicy) {
-          const escapeHTMLPolicy = trustedTypes.createPolicy("myEscapePolicy", {
-            createHTML: (content) => content.replace(/\\</g, "&lt;"),
-          });
-
-          content = escapeHTMLPolicy.createHTML(content);
-        }
-
-        e.innerHTML = content;
+        e.textContent = `\(css)`;
         d.body.appendChild(e);
       };
       \(fnName)();

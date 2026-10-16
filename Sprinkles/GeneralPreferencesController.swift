@@ -53,6 +53,7 @@ class GeneralPreferencesController: NSViewController, SettingsPane {
       }
     }
 
+    showPreferencesOnLaunchCheckbox.state = Defaults[.showPreferencesOnLaunch] ? .on : .off
     launchAtLoginCheckbox.state = LaunchAtLogin.isEnabled ? .on : .off
   }
 

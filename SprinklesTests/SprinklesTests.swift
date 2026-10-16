@@ -54,6 +54,14 @@ class SprinklesTests: XCTestCase {
     XCTAssertNotEqual(second, Server.checksum(directoryURL: dir))
   }
 
+  func testDomainsExcludesOnlyGlobalAndHiddenFiles() {
+    let files = [
+      "global.js", "global.css", "globalnews.ca.css", "example.com.js", "example.com.css",
+      "._example.com.js", ".hidden.js", "notes.txt",
+    ]
+    XCTAssertEqual(Server.domains(in: files), ["example.com", "globalnews.ca"])
+  }
+
   func testCompileSetSurvivesTrailingLineComment() throws {
     let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

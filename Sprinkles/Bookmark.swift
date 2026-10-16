@@ -64,9 +64,12 @@ public class Bookmark {
       return nil
     }
 
-    guard !isStale.boolValue else { return nil }
-    guard restored != nil else { return nil }
-    guard restored?.startAccessingSecurityScopedResource() ?? false else { return nil }
+    guard let restored = restored else { return nil }
+    guard restored.startAccessingSecurityScopedResource() else { return nil }
+
+    if isStale.boolValue {
+      saveToDisk(restored)
+    }
 
     return restored
   }
@@ -81,7 +84,8 @@ public class Bookmark {
         options: .withSecurityScope,
         includingResourceValuesForKeys: nil, relativeTo: nil)
     } catch {
-      fatalError(error.localizedDescription)
+      print(error)
+      return
     }
 
     let permission = [url: bookmarkData]
@@ -92,7 +96,8 @@ public class Bookmark {
       let data = archiver.encodedData
       try data.write(to: fileURL())
     } catch {
-      fatalError(error.localizedDescription)
+      print(error)
+      return
     }
   }
 
