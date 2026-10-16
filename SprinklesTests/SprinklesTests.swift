@@ -54,6 +54,28 @@ class SprinklesTests: XCTestCase {
     XCTAssertNotEqual(second, Server.checksum(directoryURL: dir))
   }
 
+  func testCompileSetSurvivesTrailingLineComment() throws {
+    let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: dir) }
+
+    try "console.log(1)\n// comment".write(
+      to: dir.appendingPathComponent("global.js"), atomically: true, encoding: .utf8)
+    try "body { color: red; }".write(
+      to: dir.appendingPathComponent("global.css"), atomically: true, encoding: .utf8)
+
+    let output = Server.compileSet("global", directoryURL: dir)
+    XCTAssertTrue(output.contains("// comment\n;function"))
+    for line in output.components(separatedBy: "\n") where line.contains(";function") {
+      XCTAssertFalse(line.hasPrefix("//"))
+    }
+  }
+
+  func testExampleFilesEndWithNewline() {
+    XCTAssertTrue(ExampleFiles.globalJS.hasSuffix("\n"))
+    XCTAssertTrue(ExampleFiles.globalCSS.hasSuffix("\n"))
+  }
+
   func testPerformanceExample() {
     // This is an example of a performance test case.
     self.measure {

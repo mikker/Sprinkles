@@ -110,7 +110,7 @@ class Server {
       return HTTPResponse(.internalServerError, content: "console.log('No scripts directory set')")
     }
 
-    let javascript = compileSet(domain, directoryURL: directory)
+    let javascript = Server.compileSet(domain, directoryURL: directory)
 
     return HTTPResponse(HTTPStatus.ok, headers: headers, content: javascript)
   }
@@ -124,8 +124,8 @@ class Server {
       return HTTPResponse(.internalServerError, content: "console.log('No scripts directory set')")
     }
 
-    let global = compileSet("global", directoryURL: directory)
-    let javascript = compileSet(domain, directoryURL: directory)
+    let global = Server.compileSet("global", directoryURL: directory)
+    let javascript = Server.compileSet(domain, directoryURL: directory)
     let combined = global.appending(javascript)
 
     return HTTPResponse(HTTPStatus.ok, headers: headers, content: combined)
@@ -211,7 +211,7 @@ class Server {
       .replacingOccurrences(of: "${", with: "\\${")
   }
 
-  private func compileSet(_ base: String, directoryURL: URL) -> String {
+  static func compileSet(_ base: String, directoryURL: URL) -> String {
     let jsURL = directoryURL.appendingPathComponent("\(base).js")
     let cssURL = directoryURL.appendingPathComponent("\(base).css")
 
@@ -224,7 +224,7 @@ class Server {
     return javascript
   }
 
-  private func tryReading(_ url: URL) -> String {
+  private static func tryReading(_ url: URL) -> String {
     if FileManager.default.fileExists(atPath: url.path) {
       do {
         return try String(contentsOf: url)
@@ -236,11 +236,13 @@ class Server {
     return ""
   }
 
-  private func injectStyleElement(_ label: String, _ css: String) -> String {
+  private static func injectStyleElement(_ label: String, _ css: String) -> String {
     let fnName = "_SprinklesInjectStyles_\(randomChars())"
     let css = Server.escapeTemplateLiteral(css)
 
-    return """
+    // Leading newline so a trailing line comment in the user's JS can't swallow the snippet
+    return "\n"
+      + """
       ;function \(fnName)() {
         console.groupCollapsed("Injecting Sprinkles styles (\(label))");
         console.log(`\(css)`);
@@ -266,7 +268,7 @@ class Server {
       """
   }
 
-  private func randomChars(length: Int = 8) -> String {
+  private static func randomChars(length: Int = 8) -> String {
     return String(
       (0..<8).map { _ in
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement()!

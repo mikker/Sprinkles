@@ -13,6 +13,7 @@ class ExampleFiles {
      * For example, uncomment the line below to get an extra creamy web experience: */
 
      /* body { background-color: papayawhip; } */
+
     """
 
   static let globalJS =
@@ -29,6 +30,7 @@ class ExampleFiles {
     // for (const elm of document.querySelectorAll("img")) {
     //   elm.src = `//picsum.photos/${elm.width}`
     // }
+
     """
 
   static func copyTo(directoryAtPath path: String) {
