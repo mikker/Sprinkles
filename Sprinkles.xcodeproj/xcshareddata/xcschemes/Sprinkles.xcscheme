@@ -38,16 +38,6 @@
                ReferencedContainer = "container:Sprinkles.xcodeproj">
             </BuildableReference>
          </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "425A179021EFC86700C57D44"
-               BuildableName = "SprinklesUITests.xctest"
-               BlueprintName = "SprinklesUITests"
-               ReferencedContainer = "container:Sprinkles.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
