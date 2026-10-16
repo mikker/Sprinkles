@@ -2,7 +2,12 @@
 set -e
 
 bundle=$1
-password=$2
+
+# The passphrase comes from $SPRINKLES_PASS so it never shows up in argv
+if [ -z "$SPRINKLES_PASS" ]; then
+    echo "SPRINKLES_PASS is not set" >&2
+    exit 1
+fi
 
 mkdir -p Certs && cd Certs
 
@@ -19,7 +24,7 @@ p12="identity.p12"
 
 echo "--- Generate root CA key ------------------------"
 /usr/bin/openssl genrsa -des3 \
-    -passout pass:$password \
+    -passout env:SPRINKLES_PASS \
     -out $ca_key 2048
 echo "-------------------------------------------------"
 
@@ -28,8 +33,9 @@ echo "- Generate root CA certificate ------------------"
     -key $ca_key \
     -sha256 -days 825 \
     -out $ca_cert \
-    -passin pass:$password \
-    -config $root_conf
+    -passin env:SPRINKLES_PASS \
+    -config $root_conf \
+    -extensions v3_ca
 echo "-------------------------------------------------"
 
 echo "- Convert root CA to .der -----------------------"
@@ -54,7 +60,7 @@ echo "- Create localhost certificate based on root CA -"
     -out $cert \
     -days 825 \
     -sha256 -extfile $ext \
-    -passin pass:$password
+    -passin env:SPRINKLES_PASS
 echo "-------------------------------------------------"
 
 echo "- Combine and convert to pkcs12 -----------------"
@@ -62,6 +68,12 @@ echo "- Combine and convert to pkcs12 -----------------"
     -out $p12 \
     -in $cert  \
     -inkey $key \
-    -passin pass:$password \
-    -passout pass:$password
+    -passout env:SPRINKLES_PASS
 echo "-------------------------------------------------"
+
+echo "- Remove root CA key ----------------------------"
+# Nothing needs it after signing; regenerating recreates everything
+rm -f $ca_key
+echo "-------------------------------------------------"
+
+echo "2" > version

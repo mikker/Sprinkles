@@ -23,7 +23,10 @@ class SprinklesCertificate {
     } else {
       let task = Process()
       task.launchPath = SprinklesCertificate.scriptPath
-      task.arguments = [Bundle.main.resourcePath!, Defaults[.userId]!]
+      task.arguments = [Bundle.main.resourcePath!]
+      // Passed via the environment so the passphrase doesn't show up in the process list
+      task.environment = ProcessInfo.processInfo.environment.merging(
+        ["SPRINKLES_PASS": Defaults[.userId]!], uniquingKeysWith: { $1 })
 
       DispatchQueue.main.async {
         task.launch()
@@ -54,7 +57,15 @@ class SprinklesCertificate {
     print(SecCopyErrorMessageString(err, nil) ?? "unknown" as CFString)
 
     var status: OSStatus = noErr
-    status = SecTrustSettingsSetTrustSettings(rootCert, SecTrustSettingsDomain.user, nil)
+    // Only trust the root for SSL to localhost, not for everything
+    let trustSettings =
+      [
+        [
+          kSecTrustSettingsPolicy: SecPolicyCreateSSL(true, "localhost" as CFString),
+          kSecTrustSettingsResult: NSNumber(value: SecTrustSettingsResult.trustRoot.rawValue),
+        ]
+      ] as CFArray
+    status = SecTrustSettingsSetTrustSettings(rootCert, SecTrustSettingsDomain.user, trustSettings)
     print(SecCopyErrorMessageString(status, nil) ?? "unknown" as CFString)
   }
 
