@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One-time Chrome Web Store authorization: turns an OAuth client into the CWS_REFRESH_TOKEN for .env.
 
-    CWS_CLIENT_ID=... CWS_CLIENT_SECRET=... scripts/cws-auth.py
+    CWS_CLIENT_ID=... CWS_CLIENT_SECRET=... scripts/cws-auth.py [--no-browser]
 
 Opens Google's consent page in your browser (sign in with the account that owns the Chrome Web Store
 item), catches the redirect on localhost and prints the .env line. See RELEASING.md for the OAuth client.
@@ -41,8 +41,11 @@ redirect = f"http://127.0.0.1:{server.server_port}"
 url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode({
     "client_id": client_id, "redirect_uri": redirect, "response_type": "code",
     "scope": "https://www.googleapis.com/auth/chromewebstore", "access_type": "offline", "prompt": "consent", "state": state})
-print("Opening", url)
-webbrowser.open(url)
+if "--no-browser" in sys.argv:
+    print("Open this URL in a browser signed in to the Chrome Web Store account:\n" + url, flush=True)
+else:
+    print("Opening", url, flush=True)
+    webbrowser.open(url)
 while "value" not in code:
     server.handle_request()
 
