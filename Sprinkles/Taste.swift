@@ -34,8 +34,11 @@ public class Store<A, S> {
     self.debug = debug
   }
 
+  // Serial, so reducers never run concurrently and actions apply in dispatch order
+  private let queue = DispatchQueue(label: "Taste.dispatch")
+
   public func dispatch(_ action: A, _ payload: Any?) {
-    DispatchQueue.global(qos: .background).async {
+    queue.async {
       var next: MoreActions = []
 
       for reducer in self.reducers {
@@ -49,16 +52,15 @@ public class Store<A, S> {
         print("\tSTATE:\(self.state)")
       }
 
-      for (_, subscriber) in self.subscribers {
-        DispatchQueue.main.async {
-          subscriber(self.state)
+      let state = self.state
+      DispatchQueue.main.async {
+        for (_, subscriber) in self.subscribers {
+          subscriber(state)
         }
       }
 
       while let action = next.popLast() {
-        DispatchQueue.main.async {
-          self.dispatch(action, payload)
-        }
+        self.dispatch(action, payload)
       }
     }
   }
