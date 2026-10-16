@@ -10,10 +10,14 @@ extension Settings.PaneIdentifier {
 class AppDelegate: NSObject, NSApplicationDelegate {
   @IBOutlet var onboarding: OnboardingController!
 
+  var hasShownServerFailure = false
+
   lazy var preferences = SettingsWindowController(
     panes: [GeneralPreferencesController()], style: .segmentedControl)
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
+    if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return }
+
     if Defaults[.userId] == nil {
       Defaults[.userId] = UUID().uuidString
     }
@@ -21,6 +25,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     _ = store.subscribe { state in
       if state.hasCert && state.directory != nil {
         Server.instance.start(3133)
+      }
+
+      if case .failed(let reason) = state.serverState, !self.hasShownServerFailure {
+        self.hasShownServerFailure = true
+        self.showServerFailure(reason)
       }
     }
 
@@ -30,6 +39,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     if !Defaults[.hasOnboarded] {
       showOnboarding()
+    } else if !store.state.hasCert || store.state.directory == nil {
+      hasShownServerFailure = true
+      showServerFailure(
+        "The scripts directory or the certificates are missing. \(Server.onboardingAdvice)")
     }
   }
 
@@ -39,6 +52,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   func showPreferences() {
     preferences.show()
+  }
+
+  func showServerFailure(_ reason: String) {
+    let alert = NSAlert()
+    alert.alertStyle = .warning
+    alert.messageText = "Sprinkles server not running"
+    alert.informativeText = reason
+    alert.addButton(withTitle: "Open Onboarding…")
+    alert.addButton(withTitle: "Dismiss")
+
+    NSApp.activate(ignoringOtherApps: true)
+    if alert.runModal() == .alertFirstButtonReturn {
+      showOnboarding()
+    }
   }
 
   func showOnboarding() {

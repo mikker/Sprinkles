@@ -3,13 +3,14 @@ import Foundation
 import Regex
 import Telegraph
 
-public enum ServerState {
+public enum ServerState: Equatable {
   case stopped
   case booting
   case running
+  case failed(String)
 }
 
-class Server {
+class Server: ServerDelegate {
   static var instance = Server()
 
   let headers: HTTPHeaders = [
@@ -22,6 +23,9 @@ class Server {
   ]
   var server: Telegraph.Server?
 
+  static let onboardingAdvice =
+    "Run Onboarding to set up the scripts directory and certificates again."
+
   var state: ServerState = .stopped {
     didSet { store.dispatch(.serverStateChanged(state)) }
   }
@@ -32,8 +36,7 @@ class Server {
     state = .booting
 
     guard let caCert = Certificate(derURL: URL(fileURLWithPath: SprinklesCertificate.caPath)) else {
-      print("no ca cert")
-      stop()
+      state = .failed("Couldn't read the Sprinkles certificate. \(Server.onboardingAdvice)")
       return
     }
 
@@ -41,12 +44,13 @@ class Server {
       let identity = CertificateIdentity(
         p12URL: URL(fileURLWithPath: SprinklesCertificate.p12Path), passphrase: Defaults[.userId]!)
     else {
-      print("no p12 cert")
-      stop()
+      state = .failed(
+        "Couldn't read the Sprinkles certificate identity. \(Server.onboardingAdvice)")
       return
     }
 
     let server = Telegraph.Server(identity: identity, caCertificates: [caCert])
+    server.delegate = self
 
     // v3 manifest
     server.route(.GET, "/v3/domains.json", handleListReq)
@@ -62,7 +66,17 @@ class Server {
       try server.start(port: port)
     } catch {
       print(error)
-      stop()
+      let nsError = error as NSError
+      if nsError.domain == NSPOSIXErrorDomain && nsError.code == Int(EADDRINUSE) {
+        state = .failed(
+          "Another copy of Sprinkles (or something else) is already listening on port \(port). Quit it and relaunch Sprinkles."
+        )
+      } else {
+        state = .failed(
+          "Couldn't listen on localhost:\(port). \(error.localizedDescription) \(Server.onboardingAdvice)"
+        )
+      }
+      return
     }
 
     state = .running
@@ -73,11 +87,12 @@ class Server {
     server?.stop()
   }
 
-  func serverDidStop(_ server: Server, error: Error?) {
-    state = .stopped
-
+  func serverDidStop(_ server: Telegraph.Server, error: Error?) {
     if let error = error {
       print(error)
+      state = .failed(error.localizedDescription)
+    } else {
+      state = .stopped
     }
   }
 

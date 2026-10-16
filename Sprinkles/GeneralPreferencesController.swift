@@ -47,6 +47,9 @@ class GeneralPreferencesController: NSViewController, SettingsPane {
       case .running:
         self.statusLight.image = NSImage(named: NSImage.statusAvailableName)
         self.statusLight.title = "Running on localhost:3133"
+      case .failed:
+        self.statusLight.image = NSImage(named: NSImage.statusUnavailableName)
+        self.statusLight.title = "Failed to start"
       }
     }
 

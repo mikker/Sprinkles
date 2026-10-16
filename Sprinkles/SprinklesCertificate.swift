@@ -31,6 +31,7 @@ class SprinklesCertificate {
 
         if task.terminationStatus != 0 {
           callback(false)
+          return
         }
 
         self.acceptCert()
@@ -72,7 +73,7 @@ class SprinklesCertificate {
   }
 
   private static func rootCert() -> SecCertificate? {
-    let data = NSData(contentsOf: URL(fileURLWithPath: caPath))!
+    guard let data = NSData(contentsOf: URL(fileURLWithPath: caPath)) else { return nil }
     return SecCertificateCreateWithData(nil, data)
   }
 }
