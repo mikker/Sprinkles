@@ -18,6 +18,8 @@ The Chrome and Firefox extensions have their own version in `web-ext/chrome/mani
 
 `just extensions` zips both into `dist/chrome-extension.zip` and `dist/firefox-extension.zip`. `just release` then runs `scripts/extensions-publish.py`, which uploads the Chrome zip to the Web Store item and publishes it (Google reviews it, then it goes live), and uploads the Firefox zip to addons.mozilla.org, waits for its validation, and creates the listed version with the changelog section as release notes (Mozilla reviews it). A version that is already on a store is skipped, so rerunning is safe. `just publish-extensions chrome|firefox|all [--dry-run]` runs it by hand; `scripts/release-ext.sh --open` is the manual fallback.
 
+Store listings (App Store, Chrome Web Store privacy practices, AMO) use the privacy policy at https://getsprinkles.app/privacy, a page in the getsprinkles.app site repo.
+
 ## Credentials
 
 Everything runs on your Mac with your own credentials in the ignored `.env`; nothing is in CI.
