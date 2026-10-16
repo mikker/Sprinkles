@@ -12,14 +12,9 @@ public enum ServerState: Equatable {
 class Server: ServerDelegate {
   static var instance = Server()
 
-  let headers: HTTPHeaders = [
-    .accessControlAllowOrigin: "*",
-    .contentType: "text/javascript; charset=utf-8",
-  ]
-  let jsonHeaders: HTTPHeaders = [
-    .accessControlAllowOrigin: "*",
-    .contentType: "application/json; charset=utf-8",
-  ]
+  static let javascript = "text/javascript; charset=utf-8"
+  static let json = "application/json; charset=utf-8"
+
   var server: Telegraph.Server?
 
   static let onboardingAdvice =
@@ -95,9 +90,28 @@ class Server: ServerDelegate {
     }
   }
 
+  /// Only the Sprinkles extensions may read responses, so arbitrary websites can't fetch
+  /// the user's scripts.
+  static func allowedOrigin(_ origin: String?) -> String? {
+    guard let origin = origin else { return nil }
+    let schemes = ["safari-web-extension://", "chrome-extension://", "moz-extension://"]
+    return schemes.contains { origin.hasPrefix($0) } ? origin : nil
+  }
+
+  private func responseHeaders(_ request: HTTPRequest, _ contentType: String) -> HTTPHeaders {
+    var headers: HTTPHeaders = [.contentType: contentType]
+    if let origin = Server.allowedOrigin(request.headers[.origin]) {
+      headers[.accessControlAllowOrigin] = origin
+      headers["Vary"] = "Origin"
+    }
+    return headers
+  }
+
   private func handleListReq(request: HTTPRequest) -> HTTPResponse {
+    let jsonHeaders = responseHeaders(request, Server.json)
+
     guard let directory = store.state.directory else {
-      return HTTPResponse(.internalServerError, content: "[]")
+      return HTTPResponse(.internalServerError, headers: jsonHeaders, content: "[]")
     }
 
     let fileManager = FileManager.default
@@ -110,12 +124,16 @@ class Server: ServerDelegate {
   }
 
   private func handleScriptsReq(request: HTTPRequest) -> HTTPResponse {
+    let headers = responseHeaders(request, Server.javascript)
+
     guard let domain = Server.parseDomain(request.uri.path) else {
-      return HTTPResponse(.unprocessableEntity, content: "console.log('Failed parsing domain')")
+      return HTTPResponse(
+        .unprocessableEntity, headers: headers, content: "console.log('Failed parsing domain')")
     }
 
     guard let directory = store.state.directory else {
-      return HTTPResponse(.internalServerError, content: "console.log('No scripts directory set')")
+      return HTTPResponse(
+        .internalServerError, headers: headers, content: "console.log('No scripts directory set')")
     }
 
     let javascript = Server.compileSet(domain, directoryURL: directory)
@@ -124,12 +142,16 @@ class Server: ServerDelegate {
   }
 
   private func handleScriptsLegacyReq(request: HTTPRequest) -> HTTPResponse {
+    let headers = responseHeaders(request, Server.javascript)
+
     guard let domain = Server.parseDomain(request.uri.path) else {
-      return HTTPResponse(.unprocessableEntity, content: "console.log('Failed parsing domain')")
+      return HTTPResponse(
+        .unprocessableEntity, headers: headers, content: "console.log('Failed parsing domain')")
     }
 
     guard let directory = store.state.directory else {
-      return HTTPResponse(.internalServerError, content: "console.log('No scripts directory set')")
+      return HTTPResponse(
+        .internalServerError, headers: headers, content: "console.log('No scripts directory set')")
     }
 
     let global = Server.compileSet("global", directoryURL: directory)
@@ -140,6 +162,7 @@ class Server: ServerDelegate {
   }
 
   private func handleVersionReq(request: HTTPRequest) -> HTTPResponse {
+    let jsonHeaders = responseHeaders(request, Server.json)
     let bundle = Bundle.main
     let version =
       bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
@@ -154,8 +177,10 @@ class Server: ServerDelegate {
   }
 
   private func handleChecksumReq(request: HTTPRequest) -> HTTPResponse {
+    let jsonHeaders = responseHeaders(request, Server.json)
+
     guard let directory = store.state.directory else {
-      return HTTPResponse(.internalServerError, content: "{}")
+      return HTTPResponse(.internalServerError, headers: jsonHeaders, content: "{}")
     }
 
     let json: [String: Any] = ["checksum": Server.checksum(directoryURL: directory)]

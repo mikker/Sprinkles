@@ -79,6 +79,20 @@ class SprinklesTests: XCTestCase {
     }
   }
 
+  func testAllowedOrigin() {
+    for origin in [
+      "safari-web-extension://ABC-123", "chrome-extension://abcdef", "moz-extension://1234-5678",
+    ] {
+      XCTAssertEqual(Server.allowedOrigin(origin), origin)
+    }
+    XCTAssertNil(Server.allowedOrigin(nil))
+    XCTAssertNil(Server.allowedOrigin(""))
+    XCTAssertNil(Server.allowedOrigin("null"))
+    XCTAssertNil(Server.allowedOrigin("https://example.com"))
+    XCTAssertNil(Server.allowedOrigin("https://chrome-extension.example.com"))
+    XCTAssertNil(Server.allowedOrigin("http://localhost:3133"))
+  }
+
   func testExampleFilesEndWithNewline() {
     XCTAssertTrue(ExampleFiles.globalJS.hasSuffix("\n"))
     XCTAssertTrue(ExampleFiles.globalCSS.hasSuffix("\n"))
