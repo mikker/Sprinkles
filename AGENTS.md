@@ -8,16 +8,16 @@
 - `Resources/` and `Sprinkles/Assets.xcassets/` store shared images and asset catalogs.
 - `web-ext/` contains packaged Chrome/Firefox extension builds and source folders.
 - `Updates/` stores prebuilt app archives used for distribution.
-- `bin/` includes project scripts (version bumping, extension release, reset install).
+- `scripts/` holds project scripts (build wrapper, version bumping, packaging, release, App Store Connect, reset install).
+- `CHANGELOG.md` and `RELEASING.md` describe user-facing changes and the release flow; `Justfile` lists the commands.
 - `cli/` is the Linux/CLI server (Go): same API as the Mac app. Build with `go build`, test with `go test ./...`.
 
 ## Build, Test, and Development Commands
 
-- `open Sprinkles.xcodeproj` opens the Xcode project for local development.
-- `xcodebuild -scheme Sprinkles -configuration Debug build` builds the macOS app.
-- `xcodebuild -scheme Sprinkles test` runs unit tests.
-- `bin/bump` increments build numbers and resolves Swift package dependencies.
-- `bin/release-ext` zips Chrome/Firefox extension builds from `web-ext/`.
+- `just build` builds the Debug app, `just test` runs the unit tests, `just check` does both; logs land in `build/xcodebuild/` (`just log-tail`).
+- `just run` rebuilds and runs the Debug app attached; `just open` opens the Xcode project.
+- `just extensions` zips the Chrome/Firefox extensions into `dist/`; `just package`, `just upload` and `just release` are the release steps (see `RELEASING.md`).
+- `Resources/` is gitignored except `AppIcon.appiconset/logo.png`, which the project references.
 
 ## Coding Style & Naming Conventions
 
@@ -31,6 +31,10 @@
 - Tests use XCTest in `SprinklesTests/` (example: `SprinklesTests.swift`).
 - Name test methods `testSomething()` and keep them focused and deterministic.
 - Run tests from Xcode or via `xcodebuild -scheme Sprinkles test`.
+
+## Changelog
+
+- User-visible app or extension changes: update the top-level `## Unreleased` section of `CHANGELOG.md` in the same change. Write short bullets from the user's viewpoint; omit implementation details, internal changes, tests, docs and tooling. The release turns the section into the version heading, the GitHub release notes and the App Store "What's New".
 
 ## Commit & Pull Request Guidelines
 

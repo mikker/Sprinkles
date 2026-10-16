@@ -10,3 +10,6 @@ web-ext/build/*
 !/Resources/AppIcon.appiconset/
 /Resources/AppIcon.appiconset/*
 !/Resources/AppIcon.appiconset/logo.png
+build/
+dist/
+.env
