@@ -19,7 +19,7 @@ create_zip() {
 
   # Navigate to the source directory and create a zip file with relative paths
   cd "$source_dir" || exit 1
-  zip -r "../../$OUTPUT_DIR/$output_file" ./* -x "*.DS_Store" "*__MACOSX*"
+  zip -r "../../$OUTPUT_DIR/$output_file" ./* -x "*.DS_Store" "*__MACOSX*" "*.zip"
   cd - >/dev/null || exit 1
 
   echo "✅ Created $OUTPUT_DIR/$output_file"

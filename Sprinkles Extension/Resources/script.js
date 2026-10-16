@@ -2,8 +2,6 @@
   if (window.__sprinklesApplied) return;
   window.__sprinklesApplied = true;
 
-  let attempt = 0;
-
   function log(title, msg) {
     console.groupCollapsed(`%c${title}`, msg && msg.error ? "color:red" : "");
     if (msg && msg.error) console.error(msg.error);
@@ -24,19 +22,16 @@
   }
 
   function apply(script) {
+    if (!document.body) {
+      document.addEventListener("DOMContentLoaded", () => apply(script), {
+        once: true,
+      });
+      return;
+    }
+
     dispatch({ event: "begin_apply" });
 
     if (!script) return;
-
-    if (!document.body) {
-      attempt++;
-      if (attempt >= 5) return;
-
-      setTimeout(function () {
-        apply(script);
-      }, 200);
-      return;
-    }
 
     try {
       eval(script);
