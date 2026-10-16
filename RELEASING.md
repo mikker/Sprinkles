@@ -37,6 +37,16 @@ Everything runs on your Mac with your own credentials in the ignored `.env`; not
 - **addons.mozilla.org API.** Once: generate credentials at [addons.mozilla.org/developers/addon/api/key](https://addons.mozilla.org/developers/addon/api/key/) and put them in `.env` as `AMO_JWT_ISSUER` (the "JWT issuer", `user:…`) and `AMO_JWT_SECRET`.
 - **GitHub.** `gh` must be logged in with push access to `mikker/Sprinkles`.
 
+## Things learned the hard way
+
+- Apple's 2025 age rating questionnaire blocks submission until answered; the answers live on the editable app info, not the version, and `scripts/appstore.py prepare` sets them (all "none").
+- The Chrome Web Store refuses to publish until the item's Privacy practices tab is filled in once by hand in the developer console. Chrome blocks browser automation on both the developer console and Google's sign-in pages, so that form and the OAuth consent click are always manual.
+- Keep the Google Auth Platform in "In production": in "Testing" every refresh token dies after 7 days.
+- An App Store Connect key with only the Developer role can upload but not create versions or submit.
+- A "Release X.Y" commit that was pushed but whose later steps failed is reused on rerun; do not amend or reset it.
+
+See `docs/vm-testing.md` for trying a build in a Tart VM before releasing.
+
 ## What the scripts need
 
 Xcode 26+, `just`, `gh`, `python3` 3.9+, `openssl`. `scripts/agent-build.sh` wraps `xcodebuild` with `build/dd` as derived data and keeps full logs under `build/xcodebuild/`; `just log-tail` shows the newest one. Output goes to ignored `build/` and `dist/`.
