@@ -13,3 +13,4 @@ web-ext/build/*
 build/
 dist/
 .env
+__pycache__/
