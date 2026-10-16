@@ -27,6 +27,11 @@ API = "https://api.appstoreconnect.apple.com/v1"
 BUNDLE_ID = "com.brnbw.Sprinkles"
 DEFAULT_APP_ID = "1500209074"
 PLATFORM = "MAC_OS"
+# Apple's 2025 age rating questionnaire; a new version can't be submitted until these are answered.
+# Sprinkles has none of this, so every release declares the same. Change here if the app ever does.
+AGE_RATING = {"userGeneratedContent": False, "healthOrWellnessTopics": False, "advertising": False,
+              "lootBox": False, "parentalControls": False, "ageAssurance": False, "messagingAndChat": False,
+              "gunsOrOtherWeapons": "NONE"}
 
 
 def b64url(data: bytes) -> str:
@@ -86,7 +91,12 @@ def request(method: str, path: str, params=None, body=None):
         detail = e.read().decode(errors="replace")
         try:
             errors = json.loads(detail).get("errors", [])
-            detail = "; ".join(f'{x.get("title")}: {x.get("detail")}' for x in errors) or detail
+            parts = []
+            for x in errors:
+                parts.append(f'{x.get("title")}: {x.get("detail")}')
+                for path, assoc in (x.get("meta") or {}).get("associatedErrors", {}).items():
+                    parts += [f"  {path}: {a.get('detail')}" for a in assoc]
+            detail = "\n".join(parts) or detail
         except ValueError:
             pass
         sys.exit(f"{method} {path} failed ({e.code}): {detail}")
@@ -167,6 +177,15 @@ def cmd_prepare(args):
             "relationships": {"app": {"data": {"type": "apps", "id": app_id()}}}}})["data"]
         print(f"==> Created App Store version {args.version}")
     vid = v["id"]
+
+    # The declaration hangs off the editable appInfo (the one in PREPARE_FOR_SUBMISSION), not the version
+    infos = get(f"/apps/{app_id()}/appInfos").get("data", [])
+    editable = [i for i in infos if (i["attributes"].get("state") or i["attributes"].get("appStoreState")) == "PREPARE_FOR_SUBMISSION"]
+    for info in editable or infos[-1:]:
+        decl = get(f"/appInfos/{info['id']}/ageRatingDeclaration")["data"]
+        request("PATCH", f"/ageRatingDeclarations/{decl['id']}", body={"data": {
+            "type": "ageRatingDeclarations", "id": decl["id"], "attributes": AGE_RATING}})
+    print("==> Age rating questionnaire answered (all none)")
 
     locs = get(f"/appStoreVersions/{vid}/appStoreVersionLocalizations").get("data", [])
     for loc in locs:
