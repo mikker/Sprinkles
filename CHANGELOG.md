@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.1
 
 - When the certificates can't be generated, Sprinkles shows what went wrong. Before, the "Generate and trust certificates" button and the certificate renewal silently did nothing.
 
