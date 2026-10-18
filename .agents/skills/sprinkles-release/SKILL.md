@@ -60,7 +60,8 @@ changelog section as its notes and the extension zips as assets, then creates th
 with the same notes, attaches the build and submits it for review, then uploads and submits the Chrome
 and Firefox extensions when their versions are new. After a failure, rerun the same
 command without adding commits; it reuses the prepared commit and never re-uploads a build. Signing
-and the upload need the local keychain and the App Store Connect API key, so run it on the release Mac.
+needs the Apple ID signed into Xcode (the distribution certificate is cloud-managed) and the upload
+needs the App Store Connect API key, so run it on the release Mac.
 
 The Chrome Web Store and addons.mozilla.org uploads run at the end (`scripts/extensions-publish.py`,
 idempotent); without their credentials the command exits 2 after the App Store submission and says so.

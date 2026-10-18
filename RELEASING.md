@@ -24,7 +24,7 @@ Store listings (App Store, Chrome Web Store privacy practices, AMO) use the priv
 
 Everything runs on your Mac with your own credentials in the ignored `.env`; nothing is in CI.
 
-- **Signing.** Targets use automatic signing with team `DDB8SQMXS9`. The export and upload pass `-allowProvisioningUpdates`, so Xcode creates the Apple Distribution certificate and the Mac App Store provisioning profile the first time, using the Apple ID signed into Xcode or the API key below.
+- **Signing.** Targets use automatic signing with team `DDB8SQMXS9`. The archive and export pass `-allowProvisioningUpdates` and sign through the Apple ID signed into Xcode (Xcode › Settings › Accounts), which creates the Mac App Store provisioning profile the first time and uses the team's cloud-managed Apple Distribution certificate. The API key below is never used for signing: a team key is not allowed to use cloud-managed distribution certificates unless that is ticked when it is created, and the export then fails with "Cloud signing permission error". If signing fails with "Failed to Use Accounts" or asks for credentials, sign in to Xcode again.
 - **App Store Connect API key.** Create a team key with the App Manager role at [App Store Connect › Users and Access › Integrations › App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api), download the `.p8` once, and put it at `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8`, where `xcodebuild` also looks. Put the IDs in `.env` (ignored) so `just` loads them:
 
   ```sh
@@ -32,7 +32,7 @@ Everything runs on your Mac with your own credentials in the ignored `.env`; not
   ASC_ISSUER_ID=12345678-1234-1234-1234-123456789012
   ```
 
-  The upload uses the key through `xcodebuild`; `scripts/appstore.py` signs its own JWTs with it using `openssl`, so no Python packages are needed. A Developer-role key (such as the one notarytool uses) can upload but can't create versions or submit; the App Manager role can do all of it. `prepare` also answers Apple's age rating questionnaire (all "none" for Sprinkles; the answers live in `scripts/appstore.py`).
+  The upload sends the exported `dist/Sprinkles.pkg` with `xcrun altool --upload-app` and this key, so nothing is signed again at upload time; `scripts/appstore.py` signs its own JWTs with it using `openssl`, so no Python packages are needed. A Developer-role key (such as the one notarytool uses) can upload but can't create versions or submit; the App Manager role can do all of it. `prepare` also answers Apple's age rating questionnaire (all "none" for Sprinkles; the answers live in `scripts/appstore.py`).
 - **Chrome Web Store API.** Once: in [Google Cloud Console](https://console.cloud.google.com/) create a project, enable the "Chrome Web Store API", set up the OAuth consent screen (External, add your own Google account as a test user), and create an OAuth client of type "Desktop app". Put its ID and secret in `.env` as `CWS_CLIENT_ID` and `CWS_CLIENT_SECRET`, then run `scripts/cws-auth.py`: it opens the consent page, you sign in with the account that owns the Web Store item, and it prints the `CWS_REFRESH_TOKEN` line for `.env`. Refresh tokens from a consent screen left in "Testing" expire after 7 days, so publish the consent screen (no verification is needed for your own account) or rerun `cws-auth.py` when uploads fail with `invalid_grant`.
 - **addons.mozilla.org API.** Once: generate credentials at [addons.mozilla.org/developers/addon/api/key](https://addons.mozilla.org/developers/addon/api/key/) and put them in `.env` as `AMO_JWT_ISSUER` (the "JWT issuer", `user:…`) and `AMO_JWT_SECRET`.
 - **GitHub.** `gh` must be logged in with push access to `mikker/Sprinkles`.
@@ -44,6 +44,7 @@ Everything runs on your Mac with your own credentials in the ignored `.env`; not
 - Keep the Google Auth Platform in "In production": in "Testing" every refresh token dies after 7 days.
 - An App Store Connect key with only the Developer role can upload but not create versions or submit.
 - A "Release X.Y" commit that was pushed but whose later steps failed is reused on rerun; do not amend or reset it.
+- Signing and uploading are separate: the cloud-managed distribution certificate is only reachable through the Apple ID in Xcode, and the API key only talks to App Store Connect. Passing the key to `xcodebuild -exportArchive` made the export try to sign with the key and fail (1.3.1), and an expired Xcode account token made the old upload-by-export fail the other way. `altool` prints nothing while it transfers; a few minutes is normal, and `just appstore builds` shows the build once it lands.
 
 See `docs/vm-testing.md` for trying a build in a Tart VM before releasing.
 
