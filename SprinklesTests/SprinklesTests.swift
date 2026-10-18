@@ -128,6 +128,38 @@ class SprinklesTests: XCTestCase {
     XCTAssertNil(SprinklesCertificate.notAfter(pem: "not a certificate"))
   }
 
+  func testGenerateWritesCertsIntoDirectory() throws {
+    let dir = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sprinkles-certs-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: dir) }
+
+    XCTAssertNil(SprinklesCertificate.generate(in: dir, passphrase: "secret"))
+
+    let certs = dir.appendingPathComponent("Certs")
+    for name in ["ca.der", "key.pem", "cert.pem", "identity.p12", "version"] {
+      XCTAssertTrue(
+        FileManager.default.fileExists(atPath: certs.appendingPathComponent(name).path),
+        "\(name) missing")
+    }
+    XCTAssertFalse(
+      FileManager.default.fileExists(atPath: certs.appendingPathComponent("ca_key.pem").path),
+      "root CA key should be removed after signing")
+  }
+
+  func testGenerateReportsScriptOutputOnFailure() throws {
+    let dir = FileManager.default.temporaryDirectory
+      .appendingPathComponent("sprinkles-certs-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: dir) }
+
+    let error = try XCTUnwrap(SprinklesCertificate.generate(in: dir, passphrase: ""))
+    XCTAssertEqual(error.status, 1)
+    XCTAssertTrue(error.output.contains("SPRINKLES_PASS is not set"))
+    XCTAssertTrue(error.description.contains("exited with status 1"))
+    XCTAssertTrue(error.description.contains("SPRINKLES_PASS is not set"))
+  }
+
   func testPerformanceExample() {
     // This is an example of a performance test case.
     self.measure {

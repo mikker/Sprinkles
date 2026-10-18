@@ -115,8 +115,15 @@ class OnboardingStep2View: NSView {
   @IBAction func didPressGenerate(_ sender: Any) {
     generateButton.isEnabled = false
 
-    SprinklesCertificate.generateCertsIfMissing { hasCert in
-      store.dispatch(.hasCert(hasCert))
+    SprinklesCertificate.generateCertsIfMissing { error in
+      store.dispatch(.hasCert(error == nil))
+
+      guard let error = error, let window = self.window else { return }
+      let alert = NSAlert()
+      alert.alertStyle = .warning
+      alert.messageText = "Couldn't generate certificates"
+      alert.informativeText = error.description
+      alert.beginSheetModal(for: window)
     }
   }
 

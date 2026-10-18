@@ -1,6 +1,7 @@
 import Defaults
 import Foundation
 import Security
+import os
 
 class SprinklesCertificate {
   static let dir = "\(NSHomeDirectory())/Certs"
@@ -59,32 +60,94 @@ class SprinklesCertificate {
     return Date(timeIntervalSinceReferenceDate: seconds.doubleValue)
   }
 
-  static func generateCertsIfMissing(_ callback: @escaping (Bool) -> Void) {
+  /// Runs gen_cert.sh and trusts the new root. Calls back on the main thread with
+  /// nil on success, or the script's exit status and output when it failed.
+  static func generateCertsIfMissing(_ callback: @escaping (GenerationError?) -> Void) {
     if exists {
-      callback(true)
-    } else {
-      let task = Process()
-      task.launchPath = SprinklesCertificate.scriptPath
-      task.arguments = [Bundle.main.resourcePath!]
-      // Passed via the environment so the passphrase doesn't show up in the process list
-      task.environment = ProcessInfo.processInfo.environment.merging(
-        ["SPRINKLES_PASS": Defaults[.userId]!], uniquingKeysWith: { $1 })
+      callback(nil)
+      return
+    }
+
+    let home = URL(fileURLWithPath: NSHomeDirectory())
+    let passphrase = Defaults[.userId]!
+
+    DispatchQueue.global(qos: .userInitiated).async {
+      let error = generate(in: home, passphrase: passphrase)
 
       DispatchQueue.main.async {
-        task.launch()
-        task.waitUntilExit()
-
-        if task.terminationStatus != 0 {
-          callback(false)
-          return
+        if error == nil {
+          self.acceptCert()
         }
-
-        self.acceptCert()
-
-        callback(true)
+        callback(error)
       }
     }
   }
+
+  /// Runs gen_cert.sh with `directory` as its working directory, so the certs land in
+  /// `directory/Certs`. Returns nil on success. Blocks until the script exits.
+  static func generate(in directory: URL, passphrase: String) -> GenerationError? {
+    let task = Process()
+    task.executableURL = URL(fileURLWithPath: scriptPath)
+    task.arguments = [Bundle.main.resourcePath!]
+    // Explicit: the inherited working directory depends on how the app was launched
+    task.currentDirectoryURL = directory
+    // Passed via the environment so the passphrase doesn't show up in the process list
+    task.environment = ProcessInfo.processInfo.environment.merging(
+      ["SPRINKLES_PASS": passphrase], uniquingKeysWith: { $1 })
+
+    let pipe = Pipe()
+    task.standardOutput = pipe
+    task.standardError = pipe
+    task.standardInput = FileHandle.nullDevice
+
+    do {
+      try task.run()
+    } catch {
+      log.error("Couldn't start gen_cert.sh: \(error.localizedDescription, privacy: .public)")
+      return GenerationError(
+        status: nil, output: "Couldn't start gen_cert.sh: \(error.localizedDescription)")
+    }
+
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    task.waitUntilExit()
+
+    let output = String(decoding: data, as: UTF8.self)
+    let status = task.terminationStatus
+    if status != 0 {
+      // Error level so it's persisted and shows up in `log show` without --info
+      log.error("gen_cert.sh exited \(status): \(output, privacy: .public)")
+      return GenerationError(status: status, output: output)
+    }
+    log.info("gen_cert.sh exited 0: \(output, privacy: .public)")
+    return nil
+  }
+
+  struct GenerationError: Error, CustomStringConvertible {
+    /// nil when the script couldn't be started at all
+    let status: Int32?
+    let output: String
+
+    /// The exit status and the last lines of output, short enough for an alert.
+    var description: String {
+      let lines =
+        output
+        .components(separatedBy: .newlines)
+        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .filter { !$0.isEmpty && !$0.hasPrefix("---") && !$0.hasPrefix("- ") }
+        // LibreSSL errors cite the source file of Apple's internal build; drop that noise
+        .map { $0.replacingOccurrences(of: "/AppleInternal/\\S*?\\.c:\\d+:", with: "", options: .regularExpression) }
+      let tail = lines.suffix(8).joined(separator: "\n")
+
+      var text = status.map { "The certificate script exited with status \($0)." } ?? output
+      if status != nil && !tail.isEmpty {
+        text += "\n\n" + tail
+      }
+      return text
+    }
+  }
+
+  private static let log = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "Sprinkles", category: "certificates")
 
   static func acceptCert() {
     var err: OSStatus = noErr

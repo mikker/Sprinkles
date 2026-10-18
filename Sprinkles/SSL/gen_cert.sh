@@ -34,7 +34,7 @@ echo "- Generate root CA certificate ------------------"
     -sha256 -days 825 \
     -out $ca_cert \
     -passin env:SPRINKLES_PASS \
-    -config $root_conf \
+    -config "$root_conf" \
     -extensions v3_ca
 echo "-------------------------------------------------"
 
@@ -50,7 +50,7 @@ echo "- Create localhost key --------------------------"
     -out $csr \
     -newkey rsa:2048 \
     -keyout $key \
-    -config $cert_conf
+    -config "$cert_conf"
 echo "-------------------------------------------------"
 
 echo "- Create localhost certificate based on root CA -"
@@ -59,7 +59,7 @@ echo "- Create localhost certificate based on root CA -"
     -CA $ca_cert -CAkey $ca_key -CAcreateserial \
     -out $cert \
     -days 825 \
-    -sha256 -extfile $ext \
+    -sha256 -extfile "$ext" \
     -passin env:SPRINKLES_PASS
 echo "-------------------------------------------------"
 

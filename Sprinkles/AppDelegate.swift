@@ -92,14 +92,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   func renewCertificate() {
     SprinklesCertificate.destroy()
-    SprinklesCertificate.generateCertsIfMissing { ok in
+    SprinklesCertificate.generateCertsIfMissing { error in
       self.isRenewingCert = false
-      store.dispatch(.hasCert(ok))
+      store.dispatch(.hasCert(error == nil))
 
-      if !ok {
+      if let error = error {
         self.hasShownServerFailure = true
         self.showServerFailure(
-          "Couldn't renew the Sprinkles certificate. \(Server.onboardingAdvice)")
+          "Couldn't renew the Sprinkles certificate. \(error)\n\n\(Server.onboardingAdvice)")
       }
     }
   }
